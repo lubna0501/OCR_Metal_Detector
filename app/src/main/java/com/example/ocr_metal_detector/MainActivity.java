@@ -3,6 +3,8 @@ package com.example.ocr_metal_detector;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -49,14 +51,36 @@ TextView textresult;
     }
 
     private void showImagePickerDialog() {
-        Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose an option");
+        String[] options = {"Camera", "Gallery"};
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (which == 0) {
+                    openCamera();
+                } else if (which == 1) {
+                    openGallery();
+                }
+            }
+        });
+        builder.show();
+//        Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+//        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        Intent chooserIntent = Intent.createChooser(galleryIntent, "Select Image");
+//        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
+//        startActivityForResult(chooserIntent, REQUEST_IMAGE_GALLERY);
+//        startActivityForResult(chooserIntent,REQUEST_IMAGE_CAMERA);
+    }
+    private void openCamera() {
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        Intent chooserIntent = Intent.createChooser(galleryIntent, "Select Image");
-        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
-        startActivityForResult(chooserIntent, REQUEST_IMAGE_GALLERY);
-        startActivityForResult(chooserIntent,REQUEST_IMAGE_CAMERA);
+        startActivityForResult(cameraIntent, REQUEST_IMAGE_CAMERA);
     }
 
+    private void openGallery() {
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(galleryIntent, REQUEST_IMAGE_GALLERY);
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
