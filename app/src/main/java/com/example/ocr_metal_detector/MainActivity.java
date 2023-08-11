@@ -7,19 +7,18 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
+
 import android.view.View;
 
-import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -34,12 +33,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 
+
+
 @SuppressWarnings({"deprecation", "ReassignedVariable"})
 public class MainActivity extends AppCompatActivity {
     ImageView image;
     TextView textresult;
     Button button;
-    boolean isZoomed = false;
+
     private static final int REQUEST_IMAGE_GALLERY = 1;
     private static final int REQUEST_IMAGE_CAMERA = 2;
 
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
                 Uri selectedImageUri = data.getData();
                 if (selectedImageUri != null) {
                     image.setImageURI(selectedImageUri);
+                    getWindow().setFormat(PixelFormat.RGBA_8888);
                     performTextRecognition(selectedImageUri);
 
                 }
@@ -103,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
                 if (data != null) {
                         Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
                         image.setImageBitmap(imageBitmap);
+                    getWindow().setFormat(PixelFormat.RGBA_8888);
                        Uri imageUri = getImageUri(imageBitmap);
                     performTextRecognition(imageUri);
 
