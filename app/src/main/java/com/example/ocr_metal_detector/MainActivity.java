@@ -10,7 +10,12 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
+
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -24,23 +29,28 @@ import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
-@SuppressWarnings("deprecation")
+
+@SuppressWarnings({"deprecation", "ReassignedVariable"})
 public class MainActivity extends AppCompatActivity {
-ImageView image;
-TextView textresult;
- Button button;
-
+    ImageView image;
+    TextView textresult;
+    Button button;
+    boolean isZoomed = false;
     private static final int REQUEST_IMAGE_GALLERY = 1;
     private static final int REQUEST_IMAGE_CAMERA = 2;
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        image= findViewById(R.id.imageselector);
-        button= findViewById(R.id.buttonselector);
-        textresult= findViewById(R.id.textresult);
+        image = findViewById(R.id.imageselector);
+        button = findViewById(R.id.buttonselector);
+        textresult = findViewById(R.id.textresult);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -65,13 +75,8 @@ TextView textresult;
             }
         });
         builder.show();
-//        Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        Intent chooserIntent = Intent.createChooser(galleryIntent, "Select Image");
-//        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
-//        startActivityForResult(chooserIntent, REQUEST_IMAGE_GALLERY);
-//        startActivityForResult(chooserIntent,REQUEST_IMAGE_CAMERA);
     }
+
     private void openCamera() {
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(cameraIntent, REQUEST_IMAGE_CAMERA);
@@ -81,6 +86,7 @@ TextView textresult;
         Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(galleryIntent, REQUEST_IMAGE_GALLERY);
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -91,31 +97,44 @@ TextView textresult;
                 if (selectedImageUri != null) {
                     image.setImageURI(selectedImageUri);
                     performTextRecognition(selectedImageUri);
+
                 }
-            }
-            else if (requestCode == REQUEST_IMAGE_CAMERA)
-            {
-                if (data != null)
-                {
-                    Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
-                    image.setImageBitmap(imageBitmap);
-                    Uri imageUri = getImageUri(imageBitmap);
+            } else if (requestCode == REQUEST_IMAGE_CAMERA) {
+                if (data != null) {
+                        Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
+                        image.setImageBitmap(imageBitmap);
+                       Uri imageUri = getImageUri(imageBitmap);
                     performTextRecognition(imageUri);
+
                 }
             }
         }
+
     }
 
-    private Uri getImageUri(Bitmap bitmap)
-    {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, "Title", null);
-        return Uri.parse(path);
+
+    private Uri getImageUri(Bitmap bitmap) {
+
+        try {
+            File imagesDir = new File(getExternalFilesDir(null), "Images");
+            if (!imagesDir.exists()) {
+                imagesDir.mkdirs();
+            }
+
+            File imageFile = new File(imagesDir, "captured_image.jpg");
+            FileOutputStream file = new FileOutputStream(imageFile);
+
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, file);
+            file.close();
+
+            return Uri.fromFile(imageFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    private void performTextRecognition(Uri imageUri)
-    {
+    private void performTextRecognition(Uri imageUri) {
         try {
             Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
             InputImage inputImage = InputImage.fromBitmap(bitmap, 0);
@@ -139,4 +158,6 @@ TextView textresult;
             Toast.makeText(this, "Text__recognition__failed", Toast.LENGTH_LONG).show();
         }
     }
+
 }
+
